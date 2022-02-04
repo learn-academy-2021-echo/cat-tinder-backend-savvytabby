@@ -1,3 +1,143 @@
+#API intro
+
+### Process
+```
+$ rails new cat-tinder-backend -d postgresql -T
+$  cd cat-tinder-backend
+$  git remote add origin https://github.com/learn-academy-2021-echo/cat-tinder-backend-savvytabby.git
+$ git checkout -b main
+$ git add .
+$ git commit -m "init commit"
+$ git push origin main
+$ rails db:create
+$ bundle add rspec-rails
+$ rails generate rspec:install
+
+```
+
+### Cat Resource
+```
+$ rails generate resource Cat name:string age:integer enjoys:text image:text
+$ rails db:migrate
+```
+### Initial Check
+```
+$ rspec spec
+```
+
+### IF we want to checkout our current route
+```
+$ rails routes --expanded
+```
+### check the table in the rails database console
+```
+$ rails c
+```
+### Seeds.rb
+
+```Ruby
+cats = [
+  {
+    name: "Mittens",
+    age: 5,
+    enjoys: "Sunshine and warm spots",
+    image: "https://images.unsplash.com/photo-1543852786-1cf6624b9987?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
+  },
+  {
+    name: "Raisins",
+    age: 4,
+    enjoys: "Being queen of the dogs",
+    image: "https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1092&q=80"
+  },
+  {
+    name: "Toast",
+    age: 1,
+    enjoys: "Getting all the attention",
+    image: "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
+  },
+  {
+    name: "Barbie",
+    age: 7,
+    enjoys: "BBQ Lamb",
+    image: "https://cdna.artstation.com/p/assets/images/images/031/676/102/large/ana-silence-43565431-2067439716641364-1574266016911851520-n.jpg?1604298130"
+  },
+  {
+    name: "Shiba",
+    age: 3,
+    enjoys: "Walking like a doggy",
+    image: "https://www.cnet.com/a/img/eWPU7u1-GqGoyEnxge8fLWLyUzg=/2016/11/10/6f83754e-d0b9-4d92-91eb-10773bc2edd0/atchoum2.jpg"
+  },
+  {
+    name: "Teddy",
+    age: 6,
+    enjoys: "Always wear a hat",
+    image: "https://i.pinimg.com/564x/33/32/6d/33326dcddbf15c56d631e374b62338dc.jpg"
+  }
+]
+
+cats.each do |values|
+  Cat.create values
+  p "creating cats #{values}"
+end
+
+```
+```
+$ rails db:seed
+$ rails c
+$ pp Cat.all
+if you want drop the table $ rails db:drop
+
+but if you ran $ rails db:seed  too many times, it will create the table many times, the id of the table will continue adding up
+```
+## Skip Authenticity Token
+### app/controllers/application_controller.rb
+```Ruby
+class ApplicationController < ActionController::Base
+   skip_before_action :verify_authenticity_token
+end
+```
+## Enable CORS
+### Adding this line of code to the Gemfile
+```Ruby
+gem 'rack-cors', :require => 'rack/cors'
+```
+
+### Add a file to the config/initializers directory named cors.rb and add the following code to the new file:
+### config/initializers/cors.rb
+```Ruby
+
+Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  allow do
+    origins '*'  # <- change this to allow requests from any domain while in development.
+
+    resource '*',
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head]
+  end
+end
+```
+### Run the command $ bundle from the command line to update the dependencies.
+```
+$ bundle
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # README
 
 This README would normally document whatever steps are necessary to get the
