@@ -46,6 +46,7 @@ cats = [
 ]
 
 cats.each do |values|
+  # active record query
   Cat.create values
   p "creating cats #{values}"
 end
