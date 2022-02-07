@@ -1,4 +1,4 @@
-#API intro
+##API intro
 
 ### Process
 ```
@@ -121,17 +121,226 @@ end
 $ bundle
 ```
 
+### push to github
 
+```
+$ git add .
+$ git commit -m "Cat resource, seeds, CORS for backend Cat Tinder project"
+$ git push origin backend-structure
+```
+### after I got approved by instructor
 
+```
+$ git checkout main
+$ git branch -D backend-structure
+$ git branch
+$ git checkout -b api-endpoints
+$ git fetch origin main
+$ git pull origin main
+$ git branch
+$ bundle
+$ yarn
 
+```
+## Index Route
+### spec/requests/cats_spec.rb
 
+We start with the index route. In this endpoint, we want to return all of the cats that the application knows about.
 
+Create a Spec
+We're going to practice Test Driven Development, so let's start with a test. We'll add our test to the cats_request_spec.rb file:
+```Ruby
+require 'rails_helper'
 
+RSpec.describe "Cats", type: :request do
+  describe "GET /index" do
+      it "gets a list of cats" do
+      # create a cat
+      Cat.create(
+        name: "Shiba",
+        age: 3,
+        enjoys: "Walking like a doggy",
+        image: "https://www.cnet.com/a/img/eWPU7u1-GqGoyEnxge8fLWLyUzg=/2016/11/10/6f83754e-d0b9-4d92-91eb-10773bc2edd0/atchoum2.jpg"
+      )
+      # make an index request
+      get '/cats'
+      #parse request data
+      cat = JSON.parse(response.body)
+      #asserting against the payload --- such as 200 -- particullar response
+      expect(response).to have_http_status(200)
+      expect(cat.length).to eq 1
+      end
+  end
+end
 
+```
+```
+$ rspec spec/requests/cats_spec.rb
+```
+When we run that spec, it fails of course, because we don't have any code in the controller to respond to the request correctly. Yay failure!
 
+### app/controllers/cats_controller.rb
 
+```Ruby
+class CatsController < ApplicationController
+  def index
+    cats = Cat.all
+    render json: cats
+  end
+end
+```
+test again ---> it passed
+```
+$ rspec spec/requests/cats_spec.rb
+```
 
+## Create
+Next we'll tackle the create route. Let's start with adding a new test:
 
+### add some more code in spec/requests/cats_spec.rb
+```Ruby
+describe "POST /create" do
+    it "creates a cat" do
+      # The params we are going to send with the request
+      cat_params = {
+        cat: {
+          name: "Shiba",
+          age: 3,
+          enjoys: "Walking like a doggy",
+          image: "https://www.cnet.com/a/img/eWPU7u1-GqGoyEnxge8fLWLyUzg=/2016/11/10/6f83754e-d0b9-4d92-91eb-10773bc2edd0/atchoum2.jpg"
+        }
+      }
+      # Send the request to the server
+      post '/cats', params: cat_params
+      # Assure that we get a success back
+      expect(response).to have_http_status(200)
+      # Look up the cat we expect to be created in the db
+      cat = Cat.first
+      # Assure that the created cat has the correct attributes
+      expect(cat.name).to eq 'Shiba' #("Shiba") is working as well
+      expect(cat.age).to eq (3)
+      expect(cat.enjoys).to eq ("Walking like a doggy")
+      expect(cat.image).to eq ("https://www.cnet.com/a/img/eWPU7u1-GqGoyEnxge8fLWLyUzg=/2016/11/10/6f83754e-d0b9-4d92-91eb-10773bc2edd0/atchoum2.jpg")
+    end
+ end
+ ```
+
+### add more code in the app/controllers/cats_controller.rb
+```Ruby
+def create
+  # Create a new cat
+  cat = Cat.create(cat_params)
+  render json: cat
+end
+
+# Handle strong parameters, so we are secure
+private
+def cat_params
+  params.require(:cat).permit(:name, :age, :enjoys, :image)
+end
+```
+### test it --> 2 examples, 0 failures
+```
+$ rspec spec/requests/cats_spec.rb
+```
+
+## Update
+Next we'll tackle the update route. Let's start with adding a new test:
+### add some more code in spec/requests/cats_spec.rb
+```Ruby
+describe "PATCH /update" do
+    it "updates a cat" do
+      # The params we are going to send with the request
+      cat_params = {
+        cat: {
+          name: "Geico",
+          age: 12,
+          enjoys: "Sell insurance on TV",
+          image: "https://www.cnet.com/a/img/eWPU7u1-GqGoyEnxge8fLWLyUzg=/2016/11/10/6f83754e-d0b9-4d92-91eb-10773bc2edd0/atchoum2.jpg"
+        }
+      }
+      # Send the request to the server
+      post '/cats', params: cat_params
+      # Look up the cat we expect to be created in the db
+      cat = Cat.first
+      p cat
+      updated_cat_params = {
+        cat: {
+          name: "Geico",
+          age: 100,
+          enjoys: "Sell ice cream in Walmart",
+          image: "https://www.cnet.com/a/img/eWPU7u1-GqGoyEnxge8fLWLyUzg=/2016/11/10/6f83754e-d0b9-4d92-91eb-10773bc2edd0/atchoum2.jpg"
+        }
+      }
+      patch "/cats/#{cat.id}", params: updated_cat_params
+      #update the cat object again (reset variable)
+      cat = Cat.first
+      # Assure that we get a success back
+      expect(response).to have_http_status(200)
+      # Assure that the created cat has the correct attributes
+      expect(cat.name).to eq 'Geico'
+      expect(cat.age).to eq (100)
+      expect(cat.enjoys).to eq ("Sell ice cream in Walmart")
+      expect(cat.image).to eq ("https://www.cnet.com/a/img/eWPU7u1-GqGoyEnxge8fLWLyUzg=/2016/11/10/6f83754e-d0b9-4d92-91eb-10773bc2edd0/atchoum2.jpg")
+      end
+ end
+ ```
+
+### add more code in the app/controllers/cats_controller.rb
+```Ruby
+def update
+  # Create a new cat
+  cat = Cat.find(params[:id])
+  cat.update(cat_params)
+  render json: cat
+end
+```
+### test it --> 3 examples, 0 failures
+```
+$ rspec spec/requests/cats_spec.rb
+```
+
+## Delete
+Next we'll tackle the update route. Let's start with adding a new test:
+### add some more code in spec/requests/cats_spec.rb
+```Ruby
+describe "DELETE /destroy" do
+it 'deletes a cat' do
+   # The params we are going to send with the request
+  cat_params = {
+    cat: {
+      name: "Dogezilla",
+      age: 3,
+      enjoys: "Destroy everything",
+      image: "https://www.cnet.com/a/img/eWPU7u1-GqGoyEnxge8fLWLyUzg=/2016/11/10/6f83754e-d0b9-4d92-91eb-10773bc2edd0/atchoum2.jpg"
+    }
+  }
+  post '/cats', params: cat_params
+  cat = Cat.first
+  delete "/cats/#{cat.id}"
+  # Assure that we get a success back
+  expect(response).to have_http_status(200)
+  #update the cat object again (reset variable)
+  cats = Cat.all
+  # test the payload
+  expect(cats).to be_empty
+end
+end
+ ```
+
+### add more code in the app/controllers/cats_controller.rb
+```Ruby
+def destroy
+  # Create a new cat
+  cat = Cat.find(params[:id])
+  cat.destroy
+  render json: cat
+end
+```
+### test it --> 4 examples, 0 failures
+```
+$ rspec spec/requests/cats_spec.rb
+```
 
 
 
