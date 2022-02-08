@@ -6,13 +6,21 @@ class CatsController < ApplicationController
   def create
     # Create a new cat
     cat = Cat.create(cat_params)
-    render json: cat
+    if cat.valid?
+      render json: cat
+    else
+      render json: cat.errors, status: 422
+    end
   end
   def update
     # Create a new cat
     cat = Cat.find(params[:id])
     cat.update(cat_params)
-    render json: cat
+    if cat.valid?
+      render json: cat
+    else
+      render json: cat.errors, status: 422
+    end
   end
 
   def destroy

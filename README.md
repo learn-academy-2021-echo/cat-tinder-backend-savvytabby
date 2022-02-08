@@ -341,9 +341,83 @@ end
 ```
 $ rspec spec/requests/cats_spec.rb
 ```
+## Cat Tinder API Validations
 
+```
+$  git checkout main
+$  git branch -D api-endpoints
+$  git checkout api-validations
+$  git fetch origin main
+$  git pull origin main
+$  bundle
+$  yarn
+```
+### Model Specs
+We can create a test that will look for an error if a cat is created without any attributes.
 
+#### add some code in spec/models/cat_spec.rb
+```Ruby
+RSpec.describe Cat, type: :model do
+  it "should validate name" do
+    cat = Cat.create
+    expect(cat.errors[:name]).to_not be_empty
+  end
+end
+```
+#### run the test (expecting 1 example, 1 failure)
+```
+$ rspec spec/models
+```
 
+```Ruby
+class Cat < ApplicationRecord
+  validates :name, presence: true
+end
+```
+#### run the test (expecting 1 example, 0 failure)
+```
+$ rspec spec/models  
+```
+### Request Specs
+
+#### add some code in the spec/requests/cats_spec.rb right underneath describe "POST /create" test (without a cat name)
+```Ruby
+it "doesn't create a cat without a name" do
+   cat_params = {
+     cat: {
+       age: 3,
+       enjoys: "Walking like a doggy",
+       image: "https://www.cnet.com/a/img/eWPU7u1-GqGoyEnxge8fLWLyUzg=/2016/11/10/6f83754e-d0b9-4d92-91eb-10773bc2edd0/atchoum2.jpg"
+     }
+   }
+   # Send the request to the  server
+   post '/cats', params: cat_params
+   # expect an error if the cat_params does not have a name
+   # expect(response.status).to eq 422
+   expect(response).to have_http_status(422)
+   # Convert the JSON response into a Ruby Hash
+   json = JSON.parse(response.body)
+   # Errors are returned as an array because there could be more than one, if there are more than one validation failures on an attribute.
+   expect(json['name']).to include "can't be blank"
+ end
+```
+#### change some code in the app/controllers/cats_controller.rb  add some if statement in the create method
+
+```Ruby
+def create
+  # Create a new cat
+  cat = Cat.create(cat_params)
+  if cat.valid?
+    render json: cat
+  else
+    render json: cat.errors, status: 422
+ end
+end
+```
+#### run the test (expecting 5 example, 0 failure)
+```
+$ rspec spec/models  
+```
 
 
 
